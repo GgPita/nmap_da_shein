@@ -7,9 +7,10 @@ import re
 import time
 
 class nmap_shein:
-    def __init__(self, alvo, portas):
+    def __init__(self, alvo, portas, opcao):
         self.alvo = alvo
         self.portas = portas
+        self.opcao = ocpao
         self.banners = []
 
     def scan_portas(self, porta):
@@ -76,6 +77,7 @@ if __name__ == "__main__":
     args = get_arguments()
     nmap = nmap_shein(
             alvo=args.alvo,
-            portas=args.portas)
+            portas=args.portas,
+            opcao=args.opcao)
 
     nmap.scan()
