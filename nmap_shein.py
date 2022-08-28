@@ -1,18 +1,25 @@
 #!/usr/bin/python3
+# Programa em python com funcionalidade parecida com a do já conhecido nmap
+#Copyright (C) 2022 Gustavo Pita#
+#Versão: 1.2
+#Repositório Git: https://github.com/GgPita/nmap_da_shein
+#This program is free software: you can redistribute it and/or modify it under the terms of the GNU Public LIcense published by the Free Software Foundation, version 3#
+#See <https://www.gnu.org/licenses/>#
 
 import argparse
-import scapy.all as scapy
 from socket import socket, AF_INET, SOCK_STREAM
+import scapy.all as scapy
 import re
-import time
 
+#Classe que contém todas as funções do programa
 class nmap_shein:
     def __init__(self, alvo, portas, opcao):
         self.alvo = alvo
         self.portas = portas
-        self.opcao = ocpao
+        self.opcao = opcao
         self.banners = []
 
+#Função para verificar se as portas estão abertas e capturar banners usando socket
     def scan_portas(self, porta):
         s = socket(AF_INET, SOCK_STREAM)
         s.settimeout(2)
@@ -21,7 +28,7 @@ class nmap_shein:
         try:
             s.connect((self.alvo, porta))
             try:
-                banner = s.recv(1024).decode().strip()
+                banner = s.recv(1024).decode()
                 self.banners.append(banner)
             except:
                 pass
@@ -36,9 +43,9 @@ class nmap_shein:
         except:
             pass
 
-
+#Função para escanear portas
     def scan(self):
-        print(f"Escaneando o host {self.alvo}\n")
+        print(f"\nEscaneando o host {self.alvo}\n")
         print(f"Porta".ljust(30) + "STATUS")
 
         if (isinstance(args.portas, str)):
@@ -49,16 +56,28 @@ class nmap_shein:
         for porta in self.portas:
             self.scan_portas(porta)
 
+#Função para verificar o hostname usando socket
+    def nome_host(self):
+        nome = socket.gethostname(self.alvo)
+        print(nome)
+        return nome
+
+
+#Função para possibilitar o uso de opções via linha de comando usando argparser
 def get_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--portas", action="store",  help="Indicar o range de portas a serem verificadas. Caso não seja indicado um range, o programa ira escannear 10 portas comuns")
+    parser.add_argument("-p", "--portas", action="store",  help="Indicar o range de portas a serem verificadas.")
     parser.add_argument("-a", "--alvo", action="store", help="Indicar o IP do host a ser verificado")
-    parser.add_argument("-o", "--opcao", action="store", help="Indicar a opção desejada entre 1(scan localhost), 2(scan portas 80 e 443), 3(scan portas 1-65000)")
+    parser.add_argument("-o", "--opcao", action="store", help="Indicar a opção desejada entre 1(scan localhost), 2(scan portas 80 e 443), 3(scan portas 1-65000), 4(scan portas de acesso remoto telnet e ssh) e 5(escanear as 10 portas mais comuns)")
     args = parser.parse_args()
 
+    if not args.alvo and not args.opcao:
+        print("Não foi indicado um host para ser escaneado, finalizando programa")
+        quit()
+
     if not args.portas and not args.opcao:
-        print("Não foi indicado um range de portas, escaneando as 10 portas mais comuns")
-        args.portas = [20, 21, 80, 443, 22, 23, 53, 110, 25, 143]
+        print("Não foi indicado um range de portas a ser escaneado nem uma das opções predefinidas, finalizando programa")
+        quit()
 
     if args.opcao:
         if args.opcao == "1":
@@ -67,12 +86,17 @@ def get_arguments():
             args.portas = [80, 443]
         elif args.opcao == "3":
             args.portas = "1-65000"
+        elif args.opcao == "4":
+            args.portas = [22, 23]
+        elif args.opcao == "5":
+            args.portas = [20, 21, 22, 23, 25, 53, 80, 110, 143, 443]
+
         else:
             print("Opção invalida")
             quit()
 
     return args
-
+    
 if __name__ == "__main__":
     args = get_arguments()
     nmap = nmap_shein(
@@ -80,4 +104,7 @@ if __name__ == "__main__":
             portas=args.portas,
             opcao=args.opcao)
 
+#Chamada da função scan
     nmap.scan()
+    
+    print(f"\nForam escaneadas {len(nmap.portas)} portas no host {nmap.alvo}")
